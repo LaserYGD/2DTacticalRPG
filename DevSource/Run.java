@@ -25,7 +25,8 @@ public class Run extends Application {
     public static boolean DEBUG_OUTPUT = true; // If true will allow debug information to be printed to console
     // Wrap System.out.println call with if(DEBUG_OUTPUT) {} to allow it to work or in other classes Run.DEBUG_OUTPUT
     private final int SCREEN_WIDTH = 1024; // Constant of screen width in pixels
-    private final int SCREEN_HEIGHT = 768; // Constant of screen height in pixels
+    private final int SCREEN_HEIGHT = 1024; // Constant of screen height in pixels
+    private final int SCREEN_MAP_HEIGHT = 768; // to show end of map drawing area
     private final int TILE_SIZE = 32; // Hardcoded 32*32 pixels
     private int[] DRAG_LOC = {-1, -1}; // This is a sentinel value that when -1 means there is no mouse drag to process
     // if it is set to a positive value it will be the mouse(x,y) upon the start of a drag
@@ -35,6 +36,7 @@ public class Run extends Application {
     private long startTime = System.nanoTime(); // These two are switches used for render/update logic
     private long currentTime;
     private Image mainMenuBg = new Image("file:GameData/Art/main_menu.png");
+    private Image paperBg = new Image("file:GameData/Art/paper.png", SCREEN_WIDTH, SCREEN_HEIGHT-SCREEN_MAP_HEIGHT, false, false);
     private int battleFrameCounter = 0; // Used to count frames during battle animations,
     // a value of 30 means ~1 sec has passed and should be set back to 0.
     private GraphicsContext gc; // Directly access draw methods on the canvas
@@ -87,6 +89,7 @@ public class Run extends Application {
             gc.fillText(newGameString, menuNewGameBounds[0], menuNewGameBounds[1]);
         } else if(gameState != null && gameState.getCurrentState() == GameState.STATE.GAME) {
             // Graphics logic for displaying a Map to the screen one tile at a time and all present characters
+            gc.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT); // Clear canvas
             MapTile[][] mapTiles = gameState.getCurrentMap().getMapTiles();
 
             for(int y=0; y<mapTiles.length; y++) {
@@ -97,6 +100,7 @@ public class Run extends Application {
                     );
                 }
             }
+            gc.drawImage(paperBg, 0, gameState.getCurrentMap().getMapHeight() * TILE_SIZE);
             // Draw all entities that have drawable and are in the currentMap
             for(Entity e: gameState.getEntities()) {
                 if(e instanceof Drawable) {
@@ -165,8 +169,8 @@ public class Run extends Application {
                 }
                 if (!name.equals("")) {
                     if(name.equals(gameState.getPlayerEntity().getName())) {
-                        gc.setStroke(Color.BLACK);
-                        gc.setFill(Color.WHITE);
+                        gc.setStroke(Color.WHITE);
+                        gc.setFill(Color.BLACK);
                         if(gameState.getPlayerEntity().isAlive()) {
                             gc.setTextAlign(TextAlignment.LEFT);
                             gc.fillText("Please Take Your Turn", 10, SCREEN_HEIGHT - 20);
@@ -175,8 +179,8 @@ public class Run extends Application {
                         }
                     } else {
                         if(target != null && ((Character) target).isAlive()) {
-                            gc.setStroke(Color.BLACK);
-                            gc.setFill(Color.WHITE);
+                            gc.setStroke(Color.WHITE);
+                            gc.setFill(Color.BLACK);
                             gc.setTextAlign(TextAlignment.LEFT);
                             gc.fillText(name + " Please Press Spacebar To Advance Their Turn", 10, SCREEN_HEIGHT - 20);
                         } else {
@@ -193,7 +197,11 @@ public class Run extends Application {
             gc.setFill(Color.rgb(43,107,140)); //To be changed to the more appealing 43,107,140 once
                                         //I figure out why custom color makes it freak out.
                                         //For Beta: Creating an image for the border might look nice
-            gc.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);//set HUD background
+            gc.fillRect(0, 0, SCREEN_WIDTH, SCREEN_MAP_HEIGHT);//set HUD background
+
+            // Put character stats here
+            gc.drawImage(paperBg, 0, SCREEN_MAP_HEIGHT);
+
             gc.setFill(Color.GREY);
 
             //draw the battle stage as dynamically as possible
@@ -202,8 +210,8 @@ public class Run extends Application {
             int stageX, stageY, stageW,  stageH;//Variables to store the location and size of the battle stage
 
 
-            gc.fillRect(stageX=SCREEN_WIDTH>>5, stageY=SCREEN_HEIGHT>>5, //this will eventually be replaced
-                    stageW=(SCREEN_WIDTH-(SCREEN_WIDTH>>4)), stageH=(SCREEN_HEIGHT>>1)+(SCREEN_HEIGHT>>3)); //with the background image of the fight scene
+            gc.fillRect(stageX=SCREEN_WIDTH>>5, stageY=SCREEN_MAP_HEIGHT>>5, //this will eventually be replaced
+                    stageW=(SCREEN_WIDTH-(SCREEN_WIDTH>>4)), stageH=(SCREEN_MAP_HEIGHT>>1)+(SCREEN_MAP_HEIGHT>>3)); //with the background image of the fight scene
 
 
 
@@ -233,7 +241,11 @@ public class Run extends Application {
             gc.fillRect(stageW/6, yAxisMod, stageW>>2, 10);
             gc.setFill(Color.GREEN);
             gc.fillRect(stageW/6, yAxisMod, currentHPDisplayed, 10);
-
+            gc.setTextAlign(TextAlignment.LEFT);
+            String heightTest = String.format("Name: %s", ally.getName());
+            double textHeight = new Text(heightTest).getBoundsInLocal().getHeight() + 5;
+            gc.fillText(heightTest, 50, SCREEN_MAP_HEIGHT + textHeight);
+            gc.fillText(String.format("HP: %.0f / %.0f", ally.getHp(), ally.getMaxHP()), 50, SCREEN_MAP_HEIGHT + textHeight * 2);
 
             // Draw Enemy
             int enemyX, enemyY;
@@ -249,11 +261,13 @@ public class Run extends Application {
             gc.fillRect(enemyX, yAxisMod, stageW>>2, 10);
             gc.setFill(Color.GREEN);
             gc.fillRect(enemyX, yAxisMod, currentHPDisplayed, 10);
+            gc.fillText(String.format("Name: %s", enemy.getName()), (SCREEN_WIDTH>>1) + 50, SCREEN_MAP_HEIGHT + textHeight);
+            gc.fillText(String.format("HP: %.0f / %.0f", enemy.getHp(), enemy.getMaxHP()), (SCREEN_WIDTH>>1) + 50, SCREEN_MAP_HEIGHT + textHeight * 2);
 
             //draw Border for fight scene
             gc.setStroke(Color.BLACK);
             gc.setLineWidth(5);
-            gc.strokeRect(SCREEN_WIDTH>>5, SCREEN_HEIGHT>>5, (SCREEN_WIDTH-(SCREEN_WIDTH>>4)), (SCREEN_HEIGHT>>1)+(SCREEN_HEIGHT>>3));
+            gc.strokeRect(SCREEN_WIDTH>>5, SCREEN_MAP_HEIGHT>>5, (SCREEN_WIDTH-(SCREEN_WIDTH>>4)), (SCREEN_MAP_HEIGHT>>1)+(SCREEN_MAP_HEIGHT>>3));
             
             //Create Buttons
             gc.setFill(Color.GREY);
@@ -262,23 +276,23 @@ public class Run extends Application {
             //ATTACK BUTTON, 
             // 1/16 width from left, 1/16 height from bottom of the stage (1/2+1/8+1/16 from top)
             // 3/8 width, 1/4 height
-            final int y1 = (SCREEN_HEIGHT >> 1) + (SCREEN_HEIGHT >> 3) + (SCREEN_HEIGHT >> 4);
+            final int y1 = (SCREEN_MAP_HEIGHT >> 1) + (SCREEN_MAP_HEIGHT >> 3) + (SCREEN_MAP_HEIGHT >> 4);
             gc.fillRect(SCREEN_WIDTH>>4, y1,
-              (SCREEN_WIDTH>>2)+(SCREEN_WIDTH>>3), SCREEN_HEIGHT>>2);
+              (SCREEN_WIDTH>>2)+(SCREEN_WIDTH>>3), SCREEN_MAP_HEIGHT>>2);
             gc.strokeRect(SCREEN_WIDTH>>4, y1,
-                (SCREEN_WIDTH>>2)+(SCREEN_WIDTH>>3), SCREEN_HEIGHT>>2);
+                (SCREEN_WIDTH>>2)+(SCREEN_WIDTH>>3), SCREEN_MAP_HEIGHT>>2);
             gc.setTextAlign(TextAlignment.CENTER);
             //Next Line will be replaced with image in beta
-            final int y2 = (SCREEN_HEIGHT >> 1) + (SCREEN_HEIGHT >> 2) + (SCREEN_HEIGHT >> 4);
+            final int y2 = (SCREEN_MAP_HEIGHT >> 1) + (SCREEN_MAP_HEIGHT >> 2) + (SCREEN_MAP_HEIGHT >> 4);
             gc.strokeText("ATTACK", SCREEN_WIDTH>>2, y2);
             
             //DEFEND BUTTON
             // 9/16 (1/2+1/16), 1/16 height from bottom of the stage
             // 3/8 width, 1/4 height
             gc.fillRect((SCREEN_WIDTH>>1)+(SCREEN_WIDTH>>4), y1,
-                    (SCREEN_WIDTH>>2)+(SCREEN_WIDTH>>3), SCREEN_HEIGHT>>2);
+                    (SCREEN_WIDTH>>2)+(SCREEN_WIDTH>>3), SCREEN_MAP_HEIGHT>>2);
             gc.strokeRect((SCREEN_WIDTH>>1)+(SCREEN_WIDTH>>4), y1,
-                  (SCREEN_WIDTH>>2)+(SCREEN_WIDTH>>3), SCREEN_HEIGHT>>2);
+                  (SCREEN_WIDTH>>2)+(SCREEN_WIDTH>>3), SCREEN_MAP_HEIGHT>>2);
             //Next Line will be replaced with image in beta
             gc.strokeText("DEFEND", SCREEN_WIDTH-(SCREEN_WIDTH>>2), y2);
 
@@ -756,9 +770,9 @@ public class Run extends Application {
             } else if(gameState.getCurrentState() == GameState.STATE.BATTLE) {
                 // DEFEND BUTTON
                 final int defendX = (SCREEN_WIDTH>>1)+(SCREEN_WIDTH>>4);
-                final int defendY = (SCREEN_HEIGHT>>1)+(SCREEN_HEIGHT>>3)+(SCREEN_HEIGHT>>4);
+                final int defendY = (SCREEN_MAP_HEIGHT>>1)+(SCREEN_MAP_HEIGHT>>3)+(SCREEN_MAP_HEIGHT>>4);
                 final int defendW = (SCREEN_WIDTH>>2)+(SCREEN_WIDTH>>3);
-                final int defendH = SCREEN_HEIGHT>>2;
+                final int defendH = SCREEN_MAP_HEIGHT>>2;
                 if(mouseX >= defendX && mouseX <= defendX + defendW) {
                     // within x bounds
                     if(mouseY >= defendY && mouseY <= defendY + defendH) {
@@ -772,7 +786,7 @@ public class Run extends Application {
                 final int attackX = SCREEN_WIDTH>>4;
                 final int attackY = defendY; // Same code line
                 final int attackW = (SCREEN_WIDTH>>2)+(SCREEN_WIDTH>>3);
-                final int attackH = SCREEN_HEIGHT>>2;
+                final int attackH = SCREEN_MAP_HEIGHT>>2;
                 if(mouseX >= attackX && mouseX <= attackX + attackW) {
                     // within x bounds
                     if(mouseY >= attackY && mouseY <= mouseY + attackH) {

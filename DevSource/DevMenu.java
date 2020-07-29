@@ -45,7 +45,7 @@ public class DevMenu extends Stage {
         this.setX(0);
         this.setY(0);
         Group devRoot = new Group();
-        Scene devRootScene = new Scene(devRoot, 480, 640);
+        Scene devRootScene = new Scene(devRoot, 640, 640);
         // Cardinal Direction style main UI container
         BorderPane devMainUI = new BorderPane();
         devRoot.getChildren().add(devMainUI);
