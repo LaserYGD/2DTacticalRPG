@@ -12,9 +12,7 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -34,6 +32,10 @@ public class DevMenu extends Stage {
     private Text devTileID, devTileSetID, devMapID, devMapPath; // dynamic updating text to show: tileID, tileSetID, etc
     private ScrollPane charInfoPane;
     private CheckBox editMode;
+    private CheckBox isFire;
+    private CheckBox isImpassable;
+    private ArrayList<Integer> fireTileIDs = new ArrayList<Integer>();
+    private ArrayList<Integer> impassableTileIDs = new ArrayList<Integer>();
     private ImageView tileSetView; // the currently selected tile set view
     private ComboBox<String> mapList = new ComboBox<>();
     private ArrayList<Text> charInfo, memInfo;
@@ -45,7 +47,7 @@ public class DevMenu extends Stage {
         this.setX(0);
         this.setY(0);
         Group devRoot = new Group();
-        Scene devRootScene = new Scene(devRoot, 640, 640);
+        Scene devRootScene = new Scene(devRoot, 1024, 1024);
         // Cardinal Direction style main UI container
         BorderPane devMainUI = new BorderPane();
         devRoot.getChildren().add(devMainUI);
@@ -56,6 +58,7 @@ public class DevMenu extends Stage {
         // devMenu.setGridLinesVisible(true); // useful for testing alignment
         devMainUI.setCenter(devMenu);
         devMenu.setOnMouseClicked(this::devMenuClicked);
+
         // Add dev controls to devMenu
         devTileID = new Text(String.format("TileID: %s", SELECTED_TILE_ID));
         devTileID.setFont(new Font("Arial", 16));
@@ -77,20 +80,15 @@ public class DevMenu extends Stage {
         GridPane.setConstraints(editMode, 5, 0);
         editMode.setOnAction(event -> EDIT_MODE = !EDIT_MODE);
 
-        Button devUpdate = new Button("Update");
-        GridPane.setConstraints(devUpdate, 6, 0);
-        devUpdate.setOnAction(event -> app.update());
+        isFire = new CheckBox("isFire");
+        GridPane.setConstraints(isFire, 6, 0);
+        isFire.setOnAction(event -> setFire());
 
-        Button devLevelUp = new Button("Level Up");
-        devMenu.setConstraints(devLevelUp, 7, 0);
-        devLevelUp.setOnAction(event -> {
-            if(app.DEBUG_OUTPUT) {
-                System.out.println(app.getLastSelectChar());
-            }
-            if (app.getLastSelectChar() != -1) {
-                ((Character) app.getGameState().getEntities().get(app.getLastSelectChar())).levelUp();
-            }
-        });
+        isImpassable = new CheckBox("isImpassable");
+        GridPane.setConstraints(isImpassable, 7, 0);
+        isImpassable.setOnAction(event -> setImpassable());
+
+        tileMetaCheck();
 
         // rowIndex 1-7 are filled with the tileSetView Image
 
@@ -140,8 +138,23 @@ public class DevMenu extends Stage {
             }
         });
 
+        Button devUpdate = new Button("Update");
+        GridPane.setConstraints(devUpdate, 0, 12);
+        devUpdate.setOnAction(event -> app.update());
+
+        Button devLevelUp = new Button("Level Up");
+        devMenu.setConstraints(devLevelUp, 1, 12);
+        devLevelUp.setOnAction(event -> {
+            if(app.DEBUG_OUTPUT) {
+                System.out.println(app.getLastSelectChar());
+            }
+            if (app.getLastSelectChar() != -1) {
+                ((Character) app.getGameState().getEntities().get(app.getLastSelectChar())).levelUp();
+            }
+        });
+
         Button memData = new Button("Update resource usage data");
-        GridPane.setConstraints(memData, 0, 12);
+        GridPane.setConstraints(memData, 0, 13);
         memData.setOnAction(event -> {
             if(memInfo != null) {
                 devMenu.getChildren().remove(memInfo.get(0));
@@ -156,14 +169,14 @@ public class DevMenu extends Stage {
             String run = String.format("FRE:%d Mb USE:%d Mb", freeMem, usedMem);
             memInfo.add(new Text(total));
             memInfo.add(new Text(run));
-            GridPane.setConstraints(memInfo.get(0), 0, 13, 3, 1);
+            GridPane.setConstraints(memInfo.get(0), 0, 14, 3, 1);
             devMenu.getChildren().add(memInfo.get(0));
-            GridPane.setConstraints(memInfo.get(1), 0, 14, 3, 1);
+            GridPane.setConstraints(memInfo.get(1), 0, 15, 3, 1);
             devMenu.getChildren().add(memInfo.get(1));
         });
 
         Button entityInfo = new Button("Update Entity Info");
-        GridPane.setConstraints(entityInfo, 0, 15, 3, 1);
+        GridPane.setConstraints(entityInfo, 0, 16, 3, 1);
         entityInfo.setOnAction(event -> {
             if(charInfo != null) {
                 for(Text t: charInfo) {
@@ -194,11 +207,12 @@ public class DevMenu extends Stage {
             }
             charInfoPane = new ScrollPane();
             charInfoPane.setContent(infoList);
-            GridPane.setConstraints(charInfoPane, 0, 16, 10, 20);
+            GridPane.setConstraints(charInfoPane, 0, 17, 10, 20);
             devMenu.getChildren().add(charInfoPane);
         });
 
-        devMenu.getChildren().addAll(devTileID, increaseTileID, decreaseTileID, editMode, devUpdate, devLevelUp,
+        devMenu.getChildren().addAll(devTileID, increaseTileID, decreaseTileID, editMode,
+                isFire, isImpassable, devUpdate, devLevelUp,
                 devTileSetID, increaseTileSetID, decreaseTileSetID,
                 devMapID, increaseMapID, decreaseMapID,
                 devMapPath, saveButton,
@@ -279,6 +293,42 @@ public class DevMenu extends Stage {
                 devTileID.setText(String.format("TileID: %s", SELECTED_TILE_ID));
             }
         }
+        tileMetaCheck();
+    }
+
+    public void tileMetaCheck() {
+        isFire.setSelected(false);
+        isImpassable.setSelected(false);
+        for(int tileID: app.getGameState().getCurrentMap().getMapFireTileIDs()) {
+            if(tileID == SELECTED_TILE_ID) {
+                isFire.setSelected(true);
+            }
+        }
+        for(int tileID: app.getGameState().getCurrentMap().getMapImpassableTileIDs()) {
+            if(tileID == SELECTED_TILE_ID) {
+                isImpassable.setSelected(true);
+            }
+        }
+    }
+
+    public void setFire() {
+        if(!isFire.isSelected()) {
+            app.getGameState().getCurrentMap().setMapFireTileIDs(SELECTED_TILE_ID, true);
+            isFire.setSelected(false);
+        } else {
+            app.getGameState().getCurrentMap().setMapFireTileIDs(SELECTED_TILE_ID, false);
+            isFire.setSelected(true);
+        }
+        tileMetaCheck();
+    }
+
+    public void setImpassable() {
+        if(!isImpassable.isSelected()) {
+            app.getGameState().getCurrentMap().setMapImpassableTileIDs(SELECTED_TILE_ID, true);
+        } else {
+            app.getGameState().getCurrentMap().setMapImpassableTileIDs(SELECTED_TILE_ID, false);
+        }
+        tileMetaCheck();
     }
 
     private void tileMaxCheck() {

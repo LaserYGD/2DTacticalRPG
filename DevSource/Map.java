@@ -2,6 +2,7 @@ import javafx.scene.image.Image;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 // Pre-Complied Maps Should be located in /GameData/Maps
@@ -21,7 +22,7 @@ public class Map {
     private MapTile[][] mapTiles;
     private int mapWidth; // Unit: Tiles
     private int mapHeight;
-    private int[][] mapDataTileMetaIDs;
+    private ArrayList<ArrayList<Integer>> mapDataTileMetaIDs = new ArrayList<ArrayList<Integer>>();
     // List of tileSets used by map (maybe for Beta enable use of multiple tileSets per map)
     private ArrayList<TileSet> tileSets = new ArrayList<>();
 
@@ -29,29 +30,32 @@ public class Map {
         // Load a map from a file
         GEN_COUNT++;
         PATH = datPath;
-        String[] temp = datPath.split("\\.");
-        metaPATH = temp[0] + ".meta";
+        String[] tempStr = datPath.split("\\.");
+        metaPATH = tempStr[0] + ".meta";
         boolean first = true;
         String[] data = getFileLines(PATH);
         int xCount = 0;
         int yCount = 0;
         String[] tileMetaData = getFileLines(metaPATH);
-        String[] tileIdsFire = { "" };
-        String[] tileIdsImpassable = { "" };
-        for(String line: tileMetaData) {
-            if(line.contains("FIRE")) {
-                tileIdsFire = line.split(":")[0].split(",");
-            } else if(line.contains("IMPASSABLE")) {
-                tileIdsImpassable = line.split(":")[0].split(",");
+        String[] tileIdsFire = tileMetaData[0].split(":")[0].split(",");
+        String[] tileIdsImpassable = tileMetaData[1].split(":")[0].split(",");
+
+        for(int i=0; i< MapTile.TileType.values().length; i++) {
+            mapDataTileMetaIDs.add(new ArrayList<Integer>());
+        }
+        for(int i=0; i<tileIdsFire.length; i++) {
+            if(!tileIdsFire[i].equals("")) {
+                int tempInt = Integer.parseInt(tileIdsFire[i]);
+                mapDataTileMetaIDs.get(MapTile.TileType.FIRE.ordinal()).add(tempInt);
             }
         }
-        mapDataTileMetaIDs = new int[MapTile.TileType.values().length][Math.max(tileIdsFire.length, tileIdsImpassable.length)];
-        for(int i=0; i<tileIdsFire.length; i++) {
-            mapDataTileMetaIDs[MapTile.TileType.FIRE.ordinal()][i] = Integer.parseInt(tileIdsFire[i]);
-        }
         for(int i=0; i<tileIdsImpassable.length; i++) {
-            mapDataTileMetaIDs[MapTile.TileType.IMPASSABLE.ordinal()][i] = Integer.parseInt(tileIdsImpassable[i]);
+            if(!tileIdsImpassable[i].equals("")) {
+                int tempInt = Integer.parseInt(tileIdsImpassable[i]);
+                mapDataTileMetaIDs.get(MapTile.TileType.IMPASSABLE.ordinal()).add(tempInt);
+            }
         }
+
         for(String line: data) {
             if(first) {
                 // The first line of file must contain metadata about the map: width/height in tiles
@@ -75,15 +79,15 @@ public class Map {
                     mapTiles[yCount][xCount] = new MapTile(Integer.parseInt(finalSplit[0]),Integer.parseInt(finalSplit[1]));
                     //Temporary parsing for metadata
                     boolean cont = true;
-                    for(int x = 0; x <mapDataTileMetaIDs[MapTile.TileType.FIRE.ordinal()].length; x++) {
-                        if(mapTiles[yCount][xCount].getTileID() == mapDataTileMetaIDs[MapTile.TileType.FIRE.ordinal()][x]) {
+                    for(int x = 0; x <mapDataTileMetaIDs.get(MapTile.TileType.FIRE.ordinal()).size(); x++) {
+                        if(mapTiles[yCount][xCount].getTileID() == mapDataTileMetaIDs.get(MapTile.TileType.FIRE.ordinal()).get(x)) {
                             mapTiles[yCount][xCount].tagFire();
                             cont = false;
                         }
                     }
                     if(cont) {
-                        for(int x = 0; x <mapDataTileMetaIDs[MapTile.TileType.IMPASSABLE.ordinal()].length; x++) {
-                            if(mapTiles[yCount][xCount].getTileID()==mapDataTileMetaIDs[MapTile.TileType.IMPASSABLE.ordinal()][x]) {
+                        for(int x = 0; x <mapDataTileMetaIDs.get(MapTile.TileType.IMPASSABLE.ordinal()).size(); x++) {
+                            if(mapTiles[yCount][xCount].getTileID()==mapDataTileMetaIDs.get(MapTile.TileType.IMPASSABLE.ordinal()).get(x)) {
                                 mapTiles[yCount][xCount].tagImpassable();
                             }
                         }
@@ -100,9 +104,10 @@ public class Map {
         // Random map generation based on the provided tilePaths
         GEN_COUNT++;
         Random rand = new Random();
-        PATH = String.format("gameData/RANDOM%d.dat", GEN_COUNT);
-        mapWidth = 100;
-        mapHeight = 100;
+        PATH = String.format("gameData/Maps/RANDOM%d.dat", GEN_COUNT);
+        int[] mapArea = Run.getMapDimensions();
+        mapWidth = mapArea[0];
+        mapHeight = mapArea[1];
         for(String path: tilePaths) {
             tileSets.add(new TileSet(path, TILE_SIZE));
         }
@@ -157,6 +162,43 @@ public class Map {
     public void setMapTiles(MapTile[][] newMap) { mapTiles = newMap; }
 
     public MapTile.TileType getTileType(int x, int y) { return mapTiles[y][x].getType(); }
+
+    public int[] getMapFireTileIDs() {
+        int steps = mapDataTileMetaIDs.get(MapTile.TileType.FIRE.ordinal()).size();
+        int[] result = new int[steps];
+        for(int i=0; i<steps; i++) {
+            result[i] = mapDataTileMetaIDs.get(MapTile.TileType.FIRE.ordinal()).get(i);
+        }
+        return result;
+    }
+
+    public int[] getMapImpassableTileIDs() {
+        int steps = mapDataTileMetaIDs.get(MapTile.TileType.IMPASSABLE.ordinal()).size();
+        int[] result = new int[steps];
+        for(int i=0; i<steps; i++) {
+            result[i] = mapDataTileMetaIDs.get(MapTile.TileType.IMPASSABLE.ordinal()).get(i);
+        }
+        return result;
+    }
+
+    public void setMapFireTileIDs(int tileID, boolean remove) {
+        if(remove) {
+            int index = mapDataTileMetaIDs.get(MapTile.TileType.FIRE.ordinal()).indexOf(tileID);
+            mapDataTileMetaIDs.get(MapTile.TileType.FIRE.ordinal()).remove(index);
+        } else {
+            mapDataTileMetaIDs.get(MapTile.TileType.FIRE.ordinal()).add(tileID);
+        }
+    }
+
+    public void setMapImpassableTileIDs(int tileID, boolean remove) {
+        if(remove) {
+            int index = mapDataTileMetaIDs.get(MapTile.TileType.IMPASSABLE.ordinal()).indexOf(tileID);
+            System.out.println(index);
+            mapDataTileMetaIDs.get(MapTile.TileType.IMPASSABLE.ordinal()).remove(index);
+        } else {
+            mapDataTileMetaIDs.get(MapTile.TileType.IMPASSABLE.ordinal()).add(tileID);
+        }
+    }
 
     // File Operation Static methods
     public static boolean doesFileExist(String path) {
@@ -256,6 +298,20 @@ public class Map {
             }
         }
         writeFileLines(PATH, dataAsString);
+
+        // Next make the .meta file
+        dataAsString = new String[2];
+        dataAsString[0] = "";
+        for(int i=0; i<mapDataTileMetaIDs.get(MapTile.TileType.FIRE.ordinal()).size(); i++) {
+            dataAsString[0] += mapDataTileMetaIDs.get(MapTile.TileType.FIRE.ordinal()).get(i) + ",";
+        }
+        dataAsString[0] += ":FIRE";
+        dataAsString[1] = "";
+        for(int i=0; i<mapDataTileMetaIDs.get(MapTile.TileType.IMPASSABLE.ordinal()).size(); i++) {
+            dataAsString[1] += mapDataTileMetaIDs.get(MapTile.TileType.IMPASSABLE.ordinal()).get(i) + ",";
+        }
+        dataAsString[1] += ":IMPASSABLE";
+        writeFileLines(metaPATH, dataAsString);
     }
 
 }

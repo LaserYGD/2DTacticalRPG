@@ -21,13 +21,13 @@ public class Run extends Application {
         This java class is responsible for all GUI handling including keyboard/mouse inputs
         This java class will hold a reference to a single GameState object which is used to control game flow
      */
-    private final String PROGRAM_VERSION = "v0.1.8a"; // Constant to identify Program Version
-    public static boolean DEBUG_OUTPUT = true; // If true will allow debug information to be printed to console
+    private final String PROGRAM_VERSION = "v0.1.9a"; // Constant to identify Program Version
+    public static boolean DEBUG_OUTPUT = false; // If true will allow debug information to be printed to console
     // Wrap System.out.println call with if(DEBUG_OUTPUT) {} to allow it to work or in other classes Run.DEBUG_OUTPUT
-    private final int SCREEN_WIDTH = 1024; // Constant of screen width in pixels
+    private static final int SCREEN_WIDTH = 1024; // Constant of screen width in pixels
     private final int SCREEN_HEIGHT = 1024; // Constant of screen height in pixels
-    private final int SCREEN_MAP_HEIGHT = 768; // to show end of map drawing area
-    private final int TILE_SIZE = 32; // Hardcoded 32*32 pixels
+    private static final int SCREEN_MAP_HEIGHT = 768; // to show end of map drawing area
+    private static final int TILE_SIZE = 32; // Hardcoded 32*32 pixels8
     private int[] DRAG_LOC = {-1, -1}; // This is a sentinel value that when -1 means there is no mouse drag to process
     // if it is set to a positive value it will be the mouse(x,y) upon the start of a drag
     private int[] menuNewGameBounds; // Used to determine where new game button is on the main menu
@@ -241,11 +241,12 @@ public class Run extends Application {
             gc.fillRect(stageW/6, yAxisMod, stageW>>2, 10);
             gc.setFill(Color.GREEN);
             gc.fillRect(stageW/6, yAxisMod, currentHPDisplayed, 10);
+            gc.setFill(Color.BLACK);
             gc.setTextAlign(TextAlignment.LEFT);
             String heightTest = String.format("Name: %s", ally.getName());
             double textHeight = new Text(heightTest).getBoundsInLocal().getHeight() + 5;
-            gc.fillText(heightTest, 50, SCREEN_MAP_HEIGHT + textHeight);
-            gc.fillText(String.format("HP: %.0f / %.0f", ally.getHp(), ally.getMaxHP()), 50, SCREEN_MAP_HEIGHT + textHeight * 2);
+            gc.fillText(heightTest, 50, SCREEN_MAP_HEIGHT + textHeight + 5);
+            gc.fillText(String.format("HP: %.0f / %.0f", ally.getHp(), ally.getMaxHP()), 50, SCREEN_MAP_HEIGHT + textHeight * 3);
 
             // Draw Enemy
             int enemyX, enemyY;
@@ -261,8 +262,9 @@ public class Run extends Application {
             gc.fillRect(enemyX, yAxisMod, stageW>>2, 10);
             gc.setFill(Color.GREEN);
             gc.fillRect(enemyX, yAxisMod, currentHPDisplayed, 10);
-            gc.fillText(String.format("Name: %s", enemy.getName()), (SCREEN_WIDTH>>1) + 50, SCREEN_MAP_HEIGHT + textHeight);
-            gc.fillText(String.format("HP: %.0f / %.0f", enemy.getHp(), enemy.getMaxHP()), (SCREEN_WIDTH>>1) + 50, SCREEN_MAP_HEIGHT + textHeight * 2);
+            gc.setFill(Color.BLACK);
+            gc.fillText(String.format("Name: %s", enemy.getName()), (SCREEN_WIDTH>>1) + 50, SCREEN_MAP_HEIGHT + textHeight + 5);
+            gc.fillText(String.format("HP: %.0f / %.0f", enemy.getHp(), enemy.getMaxHP()), (SCREEN_WIDTH>>1) + 50, SCREEN_MAP_HEIGHT + textHeight * 3);
 
             //draw Border for fight scene
             gc.setStroke(Color.BLACK);
@@ -855,6 +857,12 @@ public class Run extends Application {
             e.printStackTrace();
         }
         return fileNames;
+    }
+    public static int[] getMapDimensions() {
+        int[] result = new int[2];
+        result[0] = SCREEN_WIDTH/TILE_SIZE;
+        result[1] = SCREEN_MAP_HEIGHT/TILE_SIZE;
+        return result;
     }
     public String getProgramVersion() { return PROGRAM_VERSION; }
     public GameState getGameState() {

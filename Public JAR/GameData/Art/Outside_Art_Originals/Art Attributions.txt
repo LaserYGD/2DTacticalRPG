@@ -4,11 +4,12 @@ For title screen background
 https://opengameart.org/content/dungeon-crawl-32x32-tiles
 DungeonCrawl
 
-https://opengameart.org/content/2d-lost-garden-zelda-style-tiles-resized-to-32x32-with-additions
-Zelda Garden
-
 https://opengameart.org/content/old-paper
 Paper
 
 Harrison Chang
 Character Art
+
+https://opengameart.org/content/lpc-forest-tiles
+Forest Tiles - Please also see included 'forest_tiles_credits.txt'
+
