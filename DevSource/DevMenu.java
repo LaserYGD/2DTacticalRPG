@@ -38,6 +38,7 @@ public class DevMenu extends Stage {
     private ArrayList<Integer> impassableTileIDs = new ArrayList<Integer>();
     private ImageView tileSetView; // the currently selected tile set view
     private ComboBox<String> mapList = new ComboBox<>();
+    private ComboBox<String> stateList = new ComboBox<>();
     private ArrayList<Text> charInfo, memInfo;
     private Font arial = new Font("Arial", 10);
 
@@ -59,6 +60,7 @@ public class DevMenu extends Stage {
         devMainUI.setCenter(devMenu);
         devMenu.setOnMouseClicked(this::devMenuClicked);
 
+        // devMenu.setGridLinesVisible(true); // DEBUG
         // Add dev controls to devMenu
         devTileID = new Text(String.format("TileID: %s", SELECTED_TILE_ID));
         devTileID.setFont(new Font("Arial", 16));
@@ -207,8 +209,26 @@ public class DevMenu extends Stage {
             }
             charInfoPane = new ScrollPane();
             charInfoPane.setContent(infoList);
-            GridPane.setConstraints(charInfoPane, 0, 17, 10, 20);
+            GridPane.setConstraints(charInfoPane, 0, 17);
             devMenu.getChildren().add(charInfoPane);
+        });
+
+        for(GameState.STATE state: GameState.STATE.values()) {
+            stateList.getItems().add(state.name());
+        }
+        GridPane.setConstraints(stateList, 0, 18);
+
+        Button updateState = new Button("!Update State! CAN BREAK ENGINE");
+        GridPane.setConstraints(updateState, 1, 18);
+        updateState.setOnAction(event -> {
+            if(stateList.getSelectionModel().getSelectedItem() != null && !stateList.getSelectionModel().getSelectedItem().equals("")) {
+                String temp = stateList.getSelectionModel().getSelectedItem();
+                for(GameState.STATE state: GameState.STATE.values()) {
+                    if(state.name().equals(temp)) {
+                        app.getGameState().setState(state);
+                    }
+                }
+            }
         });
 
         devMenu.getChildren().addAll(devTileID, increaseTileID, decreaseTileID, editMode,
@@ -217,7 +237,8 @@ public class DevMenu extends Stage {
                 devMapID, increaseMapID, decreaseMapID,
                 devMapPath, saveButton,
                 mapList, loadMap,
-                memData, entityInfo);
+                memData, entityInfo,
+                stateList, updateState);
 
         this.setX(0D);
         this.setScene(devRootScene);

@@ -21,7 +21,7 @@ public class Run extends Application {
         This java class is responsible for all GUI handling including keyboard/mouse inputs
         This java class will hold a reference to a single GameState object which is used to control game flow
      */
-    private final String PROGRAM_VERSION = "v0.1.9a"; // Constant to identify Program Version
+    private final String PROGRAM_VERSION = "v0.2.0a"; // Constant to identify Program Version
     public static boolean DEBUG_OUTPUT = false; // If true will allow debug information to be printed to console
     // Wrap System.out.println call with if(DEBUG_OUTPUT) {} to allow it to work or in other classes Run.DEBUG_OUTPUT
     private static final int SCREEN_WIDTH = 1024; // Constant of screen width in pixels
@@ -45,7 +45,7 @@ public class Run extends Application {
 
     private void render() {
         // Render the frame based on GameState.currentState
-        if(gameState != null && devMenu != null) {
+        if (gameState != null && devMenu != null) {
             // Load dev menu related rendering
             Image selectedTileImg = gameState.getCurrentMap().getTile(devMenu.SELECTED_TILE_SET_ID,
                     devMenu.SELECTED_TILE_ID);
@@ -60,7 +60,7 @@ public class Run extends Application {
             GridPane.setConstraints(devMenu.getTileSetView(), 0, 2,
                     6, 6);
         }
-        if(gameState == null || gameState.getCurrentState() == GameState.STATE.MAIN_MENU) {
+        if (gameState == null || gameState.getCurrentState() == GameState.STATE.MAIN_MENU) {
             // Main menu rendering
             gc.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT); // Clear canvas
             // Perhaps load a menuBackground.png here
@@ -73,7 +73,7 @@ public class Run extends Application {
             String title = "Game Project";
             Text menuTitle = new Text(title);
             menuTitle.setFont(menuTitleFont);
-            gc.fillText(title, (SCREEN_WIDTH >> 1) - (menuTitle.getLayoutBounds().getWidth()/2),
+            gc.fillText(title, (SCREEN_WIDTH >> 1) - (menuTitle.getLayoutBounds().getWidth() / 2),
                     SCREEN_HEIGHT >> 4);
             Font menuOptionsFont = new Font("Arial", 28); // Can change to whatever font we wish
             gc.setFont(menuOptionsFont);
@@ -82,18 +82,18 @@ public class Run extends Application {
             newGameText.setFont(menuOptionsFont);
             menuNewGameBounds = new int[4]; // x, y, width, height used to identify a rectangle
             // Around the bounds of the "Play" text
-            menuNewGameBounds[0] = (int) ((SCREEN_WIDTH >> 1) - (newGameText.getLayoutBounds().getWidth()/2));
+            menuNewGameBounds[0] = (int) ((SCREEN_WIDTH >> 1) - (newGameText.getLayoutBounds().getWidth() / 2));
             menuNewGameBounds[1] = (SCREEN_HEIGHT >> 4) * 4;
             menuNewGameBounds[2] = (int) newGameText.getLayoutBounds().getWidth();
             menuNewGameBounds[3] = (int) newGameText.getLayoutBounds().getHeight();
             gc.fillText(newGameString, menuNewGameBounds[0], menuNewGameBounds[1]);
-        } else if(gameState != null && gameState.getCurrentState() == GameState.STATE.GAME) {
+        } else if (gameState != null && gameState.getCurrentState() == GameState.STATE.GAME) {
             // Graphics logic for displaying a Map to the screen one tile at a time and all present characters
             gc.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT); // Clear canvas
             MapTile[][] mapTiles = gameState.getCurrentMap().getMapTiles();
 
-            for(int y=0; y<mapTiles.length; y++) {
-                for(int x=0; x<mapTiles[0].length; x++) {
+            for (int y = 0; y < mapTiles.length; y++) {
+                for (int x = 0; x < mapTiles[0].length; x++) {
                     gc.drawImage(gameState.getCurrentMap().getTile(mapTiles[y][x].getTileSet(), mapTiles[y][x].getTileID()),
                             x * gameState.getCurrentMap().getTileSize(),
                             y * gameState.getCurrentMap().getTileSize()
@@ -102,17 +102,17 @@ public class Run extends Application {
             }
             gc.drawImage(paperBg, 0, gameState.getCurrentMap().getMapHeight() * TILE_SIZE);
             // Draw all entities that have drawable and are in the currentMap
-            for(Entity e: gameState.getEntities()) {
-                if(e instanceof Drawable) {
-                    if( ((PhysicalEntity) e).getCurrentMap().equals(gameState.getCurrentMap()) ) {
+            for (Entity e : gameState.getEntities()) {
+                if (e instanceof Drawable) {
+                    if (((PhysicalEntity) e).getCurrentMap().equals(gameState.getCurrentMap())) {
                         // Only draw entities tied to the current map
-                        if(e instanceof Character) {
-                            if(!((Character) e).isAlive()) {
+                        if (e instanceof Character) {
+                            if (!((Character) e).isAlive()) {
                                 ((Character) e).setCurrentSprite(((Character) e).getCharClass().getDeadTileID());
                             }
                         }
                         ((Drawable) e).draw(gc); // This draws the sprite
-                        if(e instanceof Character) {
+                        if (e instanceof Character) {
                             double x, y, maxHP, pixelPerHP, currentHP, currentHPDisplayed, YaxisMod;
                             x = ((Character) e).getX();
                             y = ((Character) e).getY();
@@ -128,76 +128,76 @@ public class Run extends Application {
                             // Draw max hp red rectangle
                             gc.setFill(Color.RED);
                             gc.setStroke(Color.BLACK);
-                            if(gameState.getPlayerTeam().contains(e)) {
+                            if (gameState.getPlayerTeam().contains(e)) {
                                 gc.fillRect(x * TILE_SIZE, y * TILE_SIZE, 3, 32);
                                 // Draw current hp green rectangle on top of it
                                 gc.setFill(Color.GREEN);
                                 gc.setStroke(Color.BLACK);
-                                if(currentHPDisplayed < 0) {
+                                if (currentHPDisplayed < 0) {
                                     currentHPDisplayed = 0;
                                 }
                                 gc.fillRect(x * TILE_SIZE, YaxisMod, 3, currentHPDisplayed);
-                            } else if(gameState.getEnemyTeam().contains(e)) {
-                                gc.fillRect((x  * TILE_SIZE) + 29, y * TILE_SIZE, 3, 32);
+                            } else if (gameState.getEnemyTeam().contains(e)) {
+                                gc.fillRect((x * TILE_SIZE) + 29, y * TILE_SIZE, 3, 32);
                                 // Draw current hp green rectangle on top of it
                                 gc.setFill(Color.GREEN);
                                 gc.setStroke(Color.BLACK);
-                                if(currentHPDisplayed < 0) {
+                                if (currentHPDisplayed < 0) {
                                     currentHPDisplayed = 0;
                                 }
-                                gc.fillRect((x  * TILE_SIZE) + 29, YaxisMod, 3, currentHPDisplayed);
+                                gc.fillRect((x * TILE_SIZE) + 29, YaxisMod, 3, currentHPDisplayed);
                             }
                         }
                     }
                 }
             }
-            if(!gameState.getNextTurn()) {
+            if (!gameState.getNextTurn()) {
                 // Turn indicator
                 String name = "";
                 Entity target = null;
-                for(Entity e: gameState.getEnemyTeam()) {
-                    if(((Character) e).isMoveTurn()) {
+                for (Entity e : gameState.getEnemyTeam()) {
+                    if (((Character) e).isMoveTurn()) {
                         name = ((Character) e).getName();
                         target = e;
                     }
                 }
-                for(Entity e: gameState.getPlayerTeam()) {
-                    if(((Character) e).isMoveTurn()) {
+                for (Entity e : gameState.getPlayerTeam()) {
+                    if (((Character) e).isMoveTurn()) {
                         name = ((Character) e).getName();
                         target = e;
                     }
                 }
                 if (!name.equals("")) {
-                    if(name.equals(gameState.getPlayerEntity().getName())) {
+                    if (name.equals(gameState.getPlayerEntity().getName())) {
                         gc.setStroke(Color.WHITE);
                         gc.setFill(Color.BLACK);
-                        if(gameState.getPlayerEntity().isAlive()) {
+                        if (gameState.getPlayerEntity().isAlive()) {
                             gc.setTextAlign(TextAlignment.LEFT);
                             gc.fillText("Please Take Your Turn", 10, SCREEN_HEIGHT - 20);
                         } else {
                             gameState.setState(GameState.STATE.GAME_OVER);
                         }
                     } else {
-                        if(target != null && ((Character) target).isAlive()) {
+                        if (target != null && ((Character) target).isAlive()) {
                             gc.setStroke(Color.WHITE);
                             gc.setFill(Color.BLACK);
                             gc.setTextAlign(TextAlignment.LEFT);
                             gc.fillText(name + " Please Press Spacebar To Advance Their Turn", 10, SCREEN_HEIGHT - 20);
                         } else {
-                            if(!gameState.getNextTurn() && !gameState.getPlayerEntity().isMoveTurn()) {
+                            if (!gameState.getNextTurn() && !gameState.getPlayerEntity().isMoveTurn()) {
                                 gameState.setNextTurn(true);
                             }
                         }
                     }
                 }
             }
-        } else if(gameState != null && gameState.getCurrentState() == GameState.STATE.BATTLE) {
+        } else if (gameState != null && gameState.getCurrentState() == GameState.STATE.BATTLE) {
             // Battle Scene
             gc.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-            gc.setFill(Color.rgb(43,107,140)); //To be changed to the more appealing 43,107,140 once
-                                        //I figure out why custom color makes it freak out.
-                                        //For Beta: Creating an image for the border might look nice
-            gc.fillRect(0, 0, SCREEN_WIDTH, SCREEN_MAP_HEIGHT);//set HUD background
+            gc.setFill(Color.rgb(43, 107, 140)); //To be changed to the more appealing 43,107,140 once
+            //I figure out why custom color makes it freak out.
+            //For Beta: Creating an image for the border might look nice
+            gc.fillRect(0, 0, SCREEN_WIDTH, SCREEN_MAP_HEIGHT); //set HUD background
 
             // Put character stats here
             gc.drawImage(paperBg, 0, SCREEN_MAP_HEIGHT);
@@ -207,40 +207,41 @@ public class Run extends Application {
             //draw the battle stage as dynamically as possible
             //Battle stage should take up 15/16 width, and 5/8 height,
             //centered with even border on left and right, 1/32 height border on top
-            int stageX, stageY, stageW,  stageH;//Variables to store the location and size of the battle stage
+            int stageX, stageY, stageW, stageH;//Variables to store the location and size of the battle stage
 
 
-            gc.fillRect(stageX=SCREEN_WIDTH>>5, stageY=SCREEN_MAP_HEIGHT>>5, //this will eventually be replaced
-                    stageW=(SCREEN_WIDTH-(SCREEN_WIDTH>>4)), stageH=(SCREEN_MAP_HEIGHT>>1)+(SCREEN_MAP_HEIGHT>>3)); //with the background image of the fight scene
-
+            gc.fillRect(stageX = SCREEN_WIDTH >> 5, stageY = SCREEN_MAP_HEIGHT >> 5, //this will eventually be replaced
+                    stageW = (SCREEN_WIDTH - (SCREEN_WIDTH >> 4)), stageH = (SCREEN_MAP_HEIGHT >> 1) + (SCREEN_MAP_HEIGHT >> 3)); //with the background image of the fight scene
 
 
             //Draw the fighters onto the stage
 
-            Character ally = gameState.getAttacker(); Character enemy = gameState.getDefender();
+            Character ally = gameState.getAttacker();
+            Character enemy = gameState.getDefender();
 
-            for(Entity c: gameState.getEnemyTeam()){
-                if(c==gameState.getAttacker()){
-                    ally = gameState.getDefender(); enemy = gameState.getAttacker();  //Make sure each person is on the correct side of the screen
+            for (Entity c : gameState.getEnemyTeam()) {
+                if (c == gameState.getAttacker()) {
+                    ally = gameState.getDefender();
+                    enemy = gameState.getAttacker();  //Make sure each person is on the correct side of the screen
                     //regardless of who is attacking
                 }
             }
 
             // Draw Ally
-            int allyX, allyY, spriteSize=stageW>>2;
+            int allyX, allyY, spriteSize = stageW >> 2;
             gc.drawImage(ally.currentSprite,
-                    allyX=stageX+(stageW>>3), allyY=stageY+(stageH>>2)+(stageH>>4),
-                    spriteSize,spriteSize);//keep sprite square
+                    allyX = stageX + (stageW >> 3), allyY = stageY + (stageH >> 2) + (stageH >> 4),
+                    spriteSize, spriteSize);//keep sprite square
             gc.setFill(Color.RED); // max hp is red, current hp is green
             gc.setStroke(Color.BLACK);
             double maxHP = ally.getMaxHP();
-            double pixelPerHP = maxHP / (stageW>>2);
+            double pixelPerHP = maxHP / (stageW >> 2);
             double currentHP = ally.getHp();
             double currentHPDisplayed = currentHP / pixelPerHP;
             int yAxisMod = stageY + (stageH >> 2) + (stageH >> 4) - 30;
-            gc.fillRect(stageW/6, yAxisMod, stageW>>2, 10);
+            gc.fillRect(stageW / 6, yAxisMod, stageW >> 2, 10);
             gc.setFill(Color.GREEN);
-            gc.fillRect(stageW/6, yAxisMod, currentHPDisplayed, 10);
+            gc.fillRect(stageW / 6, yAxisMod, currentHPDisplayed, 10);
             gc.setFill(Color.BLACK);
             gc.setTextAlign(TextAlignment.LEFT);
             String heightTest = String.format("Name: %s", ally.getName());
@@ -251,69 +252,69 @@ public class Run extends Application {
             // Draw Enemy
             int enemyX, enemyY;
             gc.drawImage(enemy.currentSprite,
-                    enemyX=stageX+stageW-(stageW>>3)-(stageW>>2),  enemyY=stageY+(stageH>>2)+(stageH>>4),
-                    stageW>>2, stageW>>2);//keep sprite square
+                    enemyX = stageX + stageW - (stageW >> 3) - (stageW >> 2), enemyY = stageY + (stageH >> 2) + (stageH >> 4),
+                    stageW >> 2, stageW >> 2);//keep sprite square
             gc.setFill(Color.RED); // max hp is red, current hp is green
             gc.setStroke(Color.BLACK);
             maxHP = enemy.getMaxHP();
-            pixelPerHP = maxHP / (stageW>>2);
+            pixelPerHP = maxHP / (stageW >> 2);
             currentHP = enemy.getHp();
             currentHPDisplayed = currentHP / pixelPerHP;
-            gc.fillRect(enemyX, yAxisMod, stageW>>2, 10);
+            gc.fillRect(enemyX, yAxisMod, stageW >> 2, 10);
             gc.setFill(Color.GREEN);
             gc.fillRect(enemyX, yAxisMod, currentHPDisplayed, 10);
             gc.setFill(Color.BLACK);
-            gc.fillText(String.format("Name: %s", enemy.getName()), (SCREEN_WIDTH>>1) + 50, SCREEN_MAP_HEIGHT + textHeight + 5);
-            gc.fillText(String.format("HP: %.0f / %.0f", enemy.getHp(), enemy.getMaxHP()), (SCREEN_WIDTH>>1) + 50, SCREEN_MAP_HEIGHT + textHeight * 3);
+            gc.fillText(String.format("Name: %s", enemy.getName()), (SCREEN_WIDTH >> 1) + 50, SCREEN_MAP_HEIGHT + textHeight + 5);
+            gc.fillText(String.format("HP: %.0f / %.0f", enemy.getHp(), enemy.getMaxHP()), (SCREEN_WIDTH >> 1) + 50, SCREEN_MAP_HEIGHT + textHeight * 3);
 
             //draw Border for fight scene
             gc.setStroke(Color.BLACK);
             gc.setLineWidth(5);
-            gc.strokeRect(SCREEN_WIDTH>>5, SCREEN_MAP_HEIGHT>>5, (SCREEN_WIDTH-(SCREEN_WIDTH>>4)), (SCREEN_MAP_HEIGHT>>1)+(SCREEN_MAP_HEIGHT>>3));
-            
+            gc.strokeRect(SCREEN_WIDTH >> 5, SCREEN_MAP_HEIGHT >> 5, (SCREEN_WIDTH - (SCREEN_WIDTH >> 4)), (SCREEN_MAP_HEIGHT >> 1) + (SCREEN_MAP_HEIGHT >> 3));
+
             //Create Buttons
             gc.setFill(Color.GREY);
             gc.setLineWidth(2);
-            
+
             //ATTACK BUTTON, 
             // 1/16 width from left, 1/16 height from bottom of the stage (1/2+1/8+1/16 from top)
             // 3/8 width, 1/4 height
             final int y1 = (SCREEN_MAP_HEIGHT >> 1) + (SCREEN_MAP_HEIGHT >> 3) + (SCREEN_MAP_HEIGHT >> 4);
-            gc.fillRect(SCREEN_WIDTH>>4, y1,
-              (SCREEN_WIDTH>>2)+(SCREEN_WIDTH>>3), SCREEN_MAP_HEIGHT>>2);
-            gc.strokeRect(SCREEN_WIDTH>>4, y1,
-                (SCREEN_WIDTH>>2)+(SCREEN_WIDTH>>3), SCREEN_MAP_HEIGHT>>2);
+            gc.fillRect(SCREEN_WIDTH >> 4, y1,
+                    (SCREEN_WIDTH >> 2) + (SCREEN_WIDTH >> 3), SCREEN_MAP_HEIGHT >> 2);
+            gc.strokeRect(SCREEN_WIDTH >> 4, y1,
+                    (SCREEN_WIDTH >> 2) + (SCREEN_WIDTH >> 3), SCREEN_MAP_HEIGHT >> 2);
             gc.setTextAlign(TextAlignment.CENTER);
             //Next Line will be replaced with image in beta
             final int y2 = (SCREEN_MAP_HEIGHT >> 1) + (SCREEN_MAP_HEIGHT >> 2) + (SCREEN_MAP_HEIGHT >> 4);
-            gc.strokeText("ATTACK", SCREEN_WIDTH>>2, y2);
-            
+            gc.strokeText("ATTACK", SCREEN_WIDTH >> 2, y2);
+
             //DEFEND BUTTON
             // 9/16 (1/2+1/16), 1/16 height from bottom of the stage
             // 3/8 width, 1/4 height
-            gc.fillRect((SCREEN_WIDTH>>1)+(SCREEN_WIDTH>>4), y1,
-                    (SCREEN_WIDTH>>2)+(SCREEN_WIDTH>>3), SCREEN_MAP_HEIGHT>>2);
-            gc.strokeRect((SCREEN_WIDTH>>1)+(SCREEN_WIDTH>>4), y1,
-                  (SCREEN_WIDTH>>2)+(SCREEN_WIDTH>>3), SCREEN_MAP_HEIGHT>>2);
+            gc.fillRect((SCREEN_WIDTH >> 1) + (SCREEN_WIDTH >> 4), y1,
+                    (SCREEN_WIDTH >> 2) + (SCREEN_WIDTH >> 3), SCREEN_MAP_HEIGHT >> 2);
+            gc.strokeRect((SCREEN_WIDTH >> 1) + (SCREEN_WIDTH >> 4), y1,
+                    (SCREEN_WIDTH >> 2) + (SCREEN_WIDTH >> 3), SCREEN_MAP_HEIGHT >> 2);
             //Next Line will be replaced with image in beta
-            gc.strokeText("DEFEND", SCREEN_WIDTH-(SCREEN_WIDTH>>2), y2);
+            gc.strokeText("DEFEND", SCREEN_WIDTH - (SCREEN_WIDTH >> 2), y2);
 
             battleFrameCounter++;
 
             // animation logic
-            if(ally.isBattleTurn()) {
-                if(gameState.getPlayerEntity().equals(ally)) {
+            if (ally.isBattleTurn()) {
+                if (gameState.getPlayerEntity().equals(ally)) {
                     // Wait for Player Input on the attack button
-                    if(ally.IsAttacking()) {
-                        if(ally.getCharClass().getCompletedCycles() > 2) {
+                    if (ally.IsAttacking()) {
+                        if (ally.getCharClass().getCompletedCycles() > 2) {
                             ally.setIsAttacking(false);
                             ally.setBattleTurn(false);
                             enemy.setBattleTurn(true);
                             ally.attack(enemy);
                             ally.getCharClass().setCompletedCycles(0);
-                            if(!enemy.isAlive()) {
+                            if (!enemy.isAlive()) {
                                 boolean didLevel = ally.getCharClass().addXP(1000 * enemy.getCharClass().getLevel()); // changed to just 1000 xp gain per kill per level
-                                if(didLevel) {
+                                if (didLevel) {
                                     ally.levelUp();
                                 }
                                 gameState.setState(GameState.STATE.GAME);
@@ -321,19 +322,19 @@ public class Run extends Application {
                         }
                         ally.attackAnimation(battleFrameCounter);
                     }
-                    gc.drawImage(ally.getCurrentSprite(), allyX, allyY, spriteSize,spriteSize);
-                    gc.drawImage(enemy.getCurrentSprite(), enemyX, enemyY, spriteSize,spriteSize);
+                    gc.drawImage(ally.getCurrentSprite(), allyX, allyY, spriteSize, spriteSize);
+                    gc.drawImage(enemy.getCurrentSprite(), enemyX, enemyY, spriteSize, spriteSize);
                 } else {
-                    if(ally.IsAttacking()) {
-                        if(ally.getCharClass().getCompletedCycles() > 2) {
+                    if (ally.IsAttacking()) {
+                        if (ally.getCharClass().getCompletedCycles() > 2) {
                             ally.setIsAttacking(false);
                             ally.setBattleTurn(false);
                             enemy.setBattleTurn(true);
                             ally.attack(enemy);
                             ally.getCharClass().setCompletedCycles(0);
-                            if(!enemy.isAlive()) {
+                            if (!enemy.isAlive()) {
                                 boolean didLevel = ally.getCharClass().addXP(1000 * enemy.getCharClass().getLevel()); // changed to just 1000 xp gain per kill per level
-                                if(didLevel) {
+                                if (didLevel) {
                                     ally.levelUp();
                                 }
                                 gameState.setState(GameState.STATE.GAME);
@@ -343,24 +344,24 @@ public class Run extends Application {
                     } else {
                         ally.setIsAttacking(true);
                     }
-                    gc.drawImage(ally.getCurrentSprite(), allyX, allyY, spriteSize,spriteSize);
-                    gc.drawImage(enemy.getCurrentSprite(), enemyX, enemyY, spriteSize,spriteSize);
+                    gc.drawImage(ally.getCurrentSprite(), allyX, allyY, spriteSize, spriteSize);
+                    gc.drawImage(enemy.getCurrentSprite(), enemyX, enemyY, spriteSize, spriteSize);
                 }
-            } else if(enemy.isBattleTurn()) {
+            } else if (enemy.isBattleTurn()) {
                 // enemy is always AI so no need to check for player
-                if(enemy.IsAttacking()) {
-                    if(enemy.getCharClass().getCompletedCycles() > 2) {
+                if (enemy.IsAttacking()) {
+                    if (enemy.getCharClass().getCompletedCycles() > 2) {
                         enemy.setIsAttacking(false);
                         enemy.setBattleTurn(false);
                         ally.setBattleTurn(true);
                         enemy.attack(ally);
                         enemy.getCharClass().setCompletedCycles(0);
-                        if(!ally.isAlive()) {
-                            if(ally.equals(gameState.getPlayerEntity())) {
+                        if (!ally.isAlive()) {
+                            if (ally.equals(gameState.getPlayerEntity())) {
                                 gameState.setState(GameState.STATE.GAME_OVER);
                             } else {
                                 boolean didLevel = enemy.getCharClass().addXP(1000 * ally.getCharClass().getLevel()); // changed to just 1000 xp gain per kill per level
-                                if(didLevel) {
+                                if (didLevel) {
                                     enemy.levelUp();
                                 }
                                 gameState.setState(GameState.STATE.GAME);
@@ -372,16 +373,55 @@ public class Run extends Application {
                     // for now enemy always chooses attack
                     enemy.setIsAttacking(true);
                 }
-                gc.drawImage(ally.getCurrentSprite(), allyX, allyY, spriteSize,spriteSize);
-                gc.drawImage(enemy.getCurrentSprite(), enemyX, enemyY, spriteSize,spriteSize);
+                gc.drawImage(ally.getCurrentSprite(), allyX, allyY, spriteSize, spriteSize);
+                gc.drawImage(enemy.getCurrentSprite(), enemyX, enemyY, spriteSize, spriteSize);
             }
             // reset battleFrameCounter every 30 frames
-            if(battleFrameCounter == 30) {
+            if (battleFrameCounter == 30) {
                 battleFrameCounter = 0;
             }
+        } else if(gameState != null && gameState.getCurrentState() == GameState.STATE.LEVEL_SELECTION) {
+            int selectedBox = 0;
+            // draw boxes for maps in memory, maybe 4 boxes and use arrow keys to select different maps
+            gc.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+            gc.drawImage(mainMenuBg, 0, 0, SCREEN_WIDTH, SCREEN_MAP_HEIGHT);
+            gc.setFill(Color.rgb(43, 107, 140));
+
+            // Draw map selection squares
+            int squareSize = 200;
+            int[][] squareXY = {
+                    {(SCREEN_WIDTH>>4),         SCREEN_HEIGHT>>5},
+                    {(SCREEN_WIDTH>>4) * 6,     SCREEN_HEIGHT>>5},
+                    {(SCREEN_WIDTH>>4) * 11,    SCREEN_HEIGHT>>5},
+                    {(SCREEN_WIDTH>>4),         (SCREEN_HEIGHT>>5) * 9},
+                    {(SCREEN_WIDTH>>4) * 6,     (SCREEN_HEIGHT>>5) * 9},
+                    {(SCREEN_WIDTH>>4) * 11,    (SCREEN_HEIGHT>>5) * 9},
+                    {(SCREEN_WIDTH>>4),         (SCREEN_HEIGHT>>5) * 17},
+                    {(SCREEN_WIDTH>>4) * 6,     (SCREEN_HEIGHT>>5) * 17},
+                    {(SCREEN_WIDTH>>4) * 11,    (SCREEN_HEIGHT>>5) * 17}
+            };
+            for(int[] xy: squareXY) {
+                gc.fillRect(xy[0], xy[1], squareSize, squareSize);
+            }
+
+            // Draw map names into squares
+            int count = 0;
+            gc.setFill(Color.BLACK);
+            gc.setFont(new Font(12));
+            for(Map m: gameState.getMaps()) {
+                gc.fillText(m.getPATH(), squareXY[count][0]+10, squareXY[count][1]+10);
+                count++;
+            }
+
+            // draw lower paper 'console' area
+            gc.drawImage(paperBg, 0, SCREEN_MAP_HEIGHT);
+            gc.setFont(new Font("Arial", 32));
+            gc.fillText(gameState.getCurrentMap().getPATH(), SCREEN_WIDTH>>4, SCREEN_MAP_HEIGHT + (SCREEN_MAP_HEIGHT>>4));
+
         } else if(gameState.getCurrentState() == GameState.STATE.GAME_OVER) {
             gc.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
             gc.drawImage(mainMenuBg, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+            gc.setFill(Color.WHITE);
             gc.setTextAlign(TextAlignment.CENTER);
             Text gameOver = new Text("GAME OVER!");
             gc.fillText(gameOver.getText(), SCREEN_WIDTH >> 1, 40);
@@ -530,6 +570,7 @@ public class Run extends Application {
                             } else {
                                 gameState.getPlayerEntity().move(0, -1);
                                 gameState.getPlayerEntity().setMoveTurn(false);
+                                System.out.println(gameState.getPlayerTeam().get(1).getUID());
                                 gameState.nextTurn(gameState.getPlayerTeam().get(1).getUID());
                             }
                         }
@@ -802,6 +843,33 @@ public class Run extends Application {
                             System.out.println("Attack Button Clicked");
                         }
                     }
+                }
+            } else if(gameState.getCurrentState() == GameState.STATE.LEVEL_SELECTION) {
+                int squareSize = 200;
+                int[][] squareXY = {
+                        {(SCREEN_WIDTH>>4),         SCREEN_HEIGHT>>5},
+                        {(SCREEN_WIDTH>>4) * 6,     SCREEN_HEIGHT>>5},
+                        {(SCREEN_WIDTH>>4) * 11,    SCREEN_HEIGHT>>5},
+                        {(SCREEN_WIDTH>>4),         (SCREEN_HEIGHT>>5) * 9},
+                        {(SCREEN_WIDTH>>4) * 6,     (SCREEN_HEIGHT>>5) * 9},
+                        {(SCREEN_WIDTH>>4) * 11,    (SCREEN_HEIGHT>>5) * 9},
+                        {(SCREEN_WIDTH>>4),         (SCREEN_HEIGHT>>5) * 17},
+                        {(SCREEN_WIDTH>>4) * 6,     (SCREEN_HEIGHT>>5) * 17},
+                        {(SCREEN_WIDTH>>4) * 11,    (SCREEN_HEIGHT>>5) * 17}
+                };
+                int count = 0;
+                for(int[] xy: squareXY) {
+                    if(mouseX >= xy[0] && mouseX <= xy[0] + squareSize) {
+                        // within x bounds
+                        if(mouseY >= xy[1] && mouseY <= xy[1] + squareSize) {
+                            // within y bounds
+                            if(count < gameState.getMaps().size()) {
+                                // sets current map
+                                gameState.setCurrentMap(gameState.getMaps().get(count));
+                            }
+                        }
+                    }
+                    count++;
                 }
             }
         });

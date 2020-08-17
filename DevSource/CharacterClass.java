@@ -9,6 +9,8 @@ public abstract class CharacterClass {
 	protected int deadTileID;
 	protected int[] attackAnimationSequence;
 	protected int completedCycles = 0;
+	protected String defaultSpriteAlly;
+	protected String defaultSpriteEnemy;
 
 	//establish characters
 	public CharacterClass() {
@@ -68,4 +70,13 @@ public abstract class CharacterClass {
 	protected int getCompletedCycles() { return completedCycles; }
 
 	protected void setCompletedCycles(int value) { completedCycles = value; }
+
+	public String getDefaultSpriteAlly() {
+		return defaultSpriteAlly;
+	}
+
+	public String getDefaultSpriteEnemy() {
+		return defaultSpriteEnemy;
+	}
+
 }

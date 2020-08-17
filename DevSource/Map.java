@@ -18,6 +18,8 @@ public class Map {
     // Tile meta data should be a file named the exact same as .dat but named .meta
     private String PATH; // Relative path to this maps .dat file
     private String metaPATH;
+    private String metaEnemies;
+    private String metaAllies;
     private int TILE_SIZE = 32; // Tile size in pixels could be per map basis though
     private MapTile[][] mapTiles;
     private int mapWidth; // Unit: Tiles
@@ -31,31 +33,40 @@ public class Map {
         GEN_COUNT++;
         PATH = datPath;
         String[] tempStr = datPath.split("\\.");
+        // process meta data
         metaPATH = tempStr[0] + ".meta";
+        String[] tileMetaData = getFileLines(metaPATH);
+        for(int i=0; i< MapTile.TileType.values().length; i++) {
+            mapDataTileMetaIDs.add(new ArrayList<Integer>());
+        }
+        for(String line: tileMetaData) {
+            if(line.contains("FIRE")) {
+                String[] tileIdsFire = line.split(":")[0].split(",");
+                for(int i=0; i<tileIdsFire.length; i++) {
+                    if(!tileIdsFire[i].equals("")) {
+                        int tempInt = Integer.parseInt(tileIdsFire[i]);
+                        mapDataTileMetaIDs.get(MapTile.TileType.FIRE.ordinal()).add(tempInt);
+                    }
+                }
+            } else if(line.contains("IMPASSABLE")) {
+                String[] tileIdsImpassable = tileMetaData[1].split(":")[0].split(",");
+                for(int i=0; i<tileIdsImpassable.length; i++) {
+                    if(!tileIdsImpassable[i].equals("")) {
+                        int tempInt = Integer.parseInt(tileIdsImpassable[i]);
+                        mapDataTileMetaIDs.get(MapTile.TileType.IMPASSABLE.ordinal()).add(tempInt);
+                    }
+                }
+            } else if(line.contains("ENEMIES")) {
+                metaEnemies = line;
+            } else if(line.contains("ALLIES")) {
+                metaAllies = line;
+            }
+        }
+        // process tile data
         boolean first = true;
         String[] data = getFileLines(PATH);
         int xCount = 0;
         int yCount = 0;
-        String[] tileMetaData = getFileLines(metaPATH);
-        String[] tileIdsFire = tileMetaData[0].split(":")[0].split(",");
-        String[] tileIdsImpassable = tileMetaData[1].split(":")[0].split(",");
-
-        for(int i=0; i< MapTile.TileType.values().length; i++) {
-            mapDataTileMetaIDs.add(new ArrayList<Integer>());
-        }
-        for(int i=0; i<tileIdsFire.length; i++) {
-            if(!tileIdsFire[i].equals("")) {
-                int tempInt = Integer.parseInt(tileIdsFire[i]);
-                mapDataTileMetaIDs.get(MapTile.TileType.FIRE.ordinal()).add(tempInt);
-            }
-        }
-        for(int i=0; i<tileIdsImpassable.length; i++) {
-            if(!tileIdsImpassable[i].equals("")) {
-                int tempInt = Integer.parseInt(tileIdsImpassable[i]);
-                mapDataTileMetaIDs.get(MapTile.TileType.IMPASSABLE.ordinal()).add(tempInt);
-            }
-        }
-
         for(String line: data) {
             if(first) {
                 // The first line of file must contain metadata about the map: width/height in tiles
@@ -142,6 +153,8 @@ public class Map {
     public int getMapHeight() { return mapHeight; }
 
     public String getPATH() { return PATH; }
+
+    public String getMetaPATH() { return metaPATH; }
 
     public String[] getTileSetPaths() {
         String[] tilePaths = new String[tileSets.size()];
@@ -297,10 +310,11 @@ public class Map {
                 yCount++;
             }
         }
+        // save .dat file
         writeFileLines(PATH, dataAsString);
 
         // Next make the .meta file
-        dataAsString = new String[2];
+        dataAsString = new String[4];
         dataAsString[0] = "";
         for(int i=0; i<mapDataTileMetaIDs.get(MapTile.TileType.FIRE.ordinal()).size(); i++) {
             dataAsString[0] += mapDataTileMetaIDs.get(MapTile.TileType.FIRE.ordinal()).get(i) + ",";
@@ -311,6 +325,10 @@ public class Map {
             dataAsString[1] += mapDataTileMetaIDs.get(MapTile.TileType.IMPASSABLE.ordinal()).get(i) + ",";
         }
         dataAsString[1] += ":IMPASSABLE";
+        // make sure to write the allies/enemies too
+        dataAsString[2] = metaEnemies;
+        dataAsString[3] = metaAllies;
+        // Save map .meta
         writeFileLines(metaPATH, dataAsString);
     }
 
