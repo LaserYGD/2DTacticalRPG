@@ -3,6 +3,10 @@ This will have the most up to date executable .jar of the program for public tes
 
 Compiled with OpenJDK 13 and OpenJFX 13.
 
+![Alt text](/ExampleScreenShots/gameExample.PNG?raw=true "Game Example")
+
+![Alt text](/ExampleScreenShots/devMenuExample.PNG?raw=true "Dev Menu")
+
 v0.2.0 Notes: added more functionality to the DevMenu including the ability to manually change gameState. 
 	Added but not implemented a 'level selection' state to allow graphical selection of levels.
 	When loading a new map the engine will now load .meta data to generate NPCs both allies and enemies
